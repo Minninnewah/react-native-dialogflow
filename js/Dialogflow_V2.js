@@ -1,5 +1,6 @@
 'use strict';
 
+import { Dialogflow } from 'react-native-dialogflow';
 import googleAuth from './googleAuth/GoogleAuth';
 import ResetContextsRequest from './ResetContextsRequest';
 export const DEFAULT_BASE_URL = "https://dialogflow.googleapis.com/v2beta1/projects/";
@@ -135,6 +136,40 @@ export class Dialogflow_V2 {
             .catch(onError);
     };
 
+    requestQuery2 = async (base64SoundFile, onResult, onError) => {
+
+        const data = {
+            "queryParams": {
+                "contexts": this.mergeContexts(this.contexts, this.permanentContexts),
+                "sessionEntityTypes": []
+            },
+            "queryInput": {
+                "audioConfig": {
+                    "audioEncoding": "AUDIO_ENCODING_AMR_WB",
+                    "sampleRateHertz": 16000,
+                    "languageCode": this.languageTag
+                }
+            },
+            "inputAudio": base64SoundFile
+        }
+
+        this.contexts = null;
+        this.entities = null;
+
+        fetch(DEFAULT_BASE_URL + this.projectId + "/agent/sessions/" + this.sessionId + ":detectIntent", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Authorization': 'Bearer ' + this.accessToken,
+                'charset': "utf-8"
+            },
+            body: JSON.stringify(data)
+        })
+            .then(function (response) {
+                var json = response.json().then(onResult)
+            })
+            .catch(onError);
+    };
 
     mergeContexts(context1, context2) {
         if (!context1) {
@@ -173,6 +208,7 @@ export class Dialogflow_V2 {
         }
     }
 
+    
 
     LANG_CHINESE_CHINA = "zh-CN";
     LANG_CHINESE_HONGKONG = "zh-HK";
